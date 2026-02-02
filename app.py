@@ -9,10 +9,10 @@ from flask_migrate import Migrate, upgrade
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 db_url = os.environ.get('DATABASE_URL')
-if not db_url or not db_url.startswith('postgresql'):
-    if os.environ.get('ENVIRONMENT') == 'production':
-        raise ValueError("DATABASE_URL must be set to a PostgreSQL URL in production")
-    else:
+if os.environ.get('ENVIRONMENT') == 'production' and (not db_url or not db_url.startswith('postgresql')):
+    raise ValueError("DATABASE_URL must be set to a PostgreSQL URL in production")
+else:
+    if not db_url:
         default_db = os.path.join(os.getcwd(), 'instance', 'chat.db')
         db_url = f'sqlite:///{default_db}'
 # Convert legacy postgres URL scheme to SQLAlchemy-compatible scheme
