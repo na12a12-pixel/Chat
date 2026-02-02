@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
@@ -41,7 +41,7 @@ class AdminToken(db.Model):
     last_sid = db.Column(db.String(100), nullable=True)
 
 with app.app_context():
-    db.create_all()
+    upgrade()
 
 #--- ระบบจัดการแชท ---
 users = {}
