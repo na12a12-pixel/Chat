@@ -1,0 +1,17 @@
+{
+  "project": {
+    "name": "chat"
+  },
+  "services": [
+    {
+      "name": "web",
+      "type": "python",
+      "startCommand": "python app.py",
+      "env": {
+        "PORT": "5000",
+        "ENVIRONMENT": "production",
+        "SECRET_KEY": "__SET_IN_RAILWAY__"
+      }
+    }
+  ]
+}
