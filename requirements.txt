@@ -4,5 +4,4 @@ Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.5
 python-socketio==5.8.0
 python-engineio==4.7.1
-eventlet==0.33.3</content>
-<parameter name="filePath">/workspaces/Chat/requirements.txt
+eventlet==0.33.3
