@@ -1,0 +1,6 @@
+__pycache__/
+instance/
+*.pyc
+*.pyo
+.env</content>
+<parameter name="filePath">/workspaces/Chat/.gitignore

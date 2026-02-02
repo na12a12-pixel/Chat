@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Admin (Anonymous)</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #e5ddd5; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #header { background: #075e54; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 10px; border-radius: 10px; background: white; max-width: 85%; box-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.4; }
+        .admin-action { color: #007bff; font-size: 11px; cursor: pointer; display: block; margin-top: 5px; font-weight: bold; }
+        #input-area { background: #f0f0f0; padding: 10px; display: flex; gap: 8px; border-top: 1px solid #ccc; align-items: center; }
+        #admin-info { display: none; background: #fff3cd; padding: 5px 10px; font-size: 12px; border-bottom: 1px solid #ffeeba; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        button { border: none; background: #075e54; color: white; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .del-btn { background: #d9534f; font-size: 11px; padding: 5px 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <span id="my-name">ชื่อของคุณ: ...</span>
+        <button class="del-btn" onclick="clearChat()">ลบประวัติฝั่งฉัน</button>
+    </div>
+    <div id="admin-info">
+        กำลังตอบกลับ ID: <input type="text" id="target_sid" readonly style="width:120px; border:none; background:transparent; font-weight:bold;">
+    </div>
+    <div id="chat"></div>
+    <div id="input-area">
+        <input type="text" id="m" placeholder="พิมพ์ข้อความ..." autocomplete="off">
+        <button id="send-btn" onclick="sendMsg()" disabled>ส่ง</button>
+    </div>
+ <script>
+    const socket = io();
+    socket.on('connect', () => { console.log('[SOCKET] connected', socket.id); socket.emit('join'); });
+    socket.on('connect_error', (err) => { console.error('[SOCKET] connect_error', err); });
+    socket.on('disconnect', (reason) => { console.log('[SOCKET] disconnected', reason); });
+    document.getElementById('send-btn').disabled = false;
+
+    socket.on('set_identity', d => { console.log('[SOCKET] set_identity', d); document.getElementById('my-name').innerText = d.name; });
+
+    function sendMsg() {
+        const input = document.getElementById('m');
+        const target = document.getElementById('target_sid').value;
+        if(!input.value.trim()) return;
+        if(typeof io === 'undefined' || !socket || !socket.connected) {
+            console.error('[SOCKET] not connected, cannot send');
+            alert('ยังไม่เชื่อมต่อกับเซิร์ฟเวอร์ — ลองรีโหลดหน้า');
+            return;
+        }
+        const payload = {text: input.value, target_sid: target};
+        console.log('[SOCKET] emit message', payload);
+        try {
+            socket.emit('message', payload);
+        } catch(err) {
+            console.error('[SOCKET] emit error', err);
+            alert('เกิดข้อผิดพลาดขณะส่งข้อความ');
+            return;
+        }
+        input.value = '';
+    }
+
+    // optional: show ack from server
+    socket.on('message_ack', d => { console.log('[SOCKET] message_ack', d); });
+
+    socket.on('new_msg', d => {
+        const div = document.createElement('div');
+        div.className = 'msg';
+        let tool = d.from_sid ? `<span class="admin-action" onclick="setReply('${d.from_sid}')">ตอบกลับคนนี้ (ID: ${d.from_sid})</span>` : "";
+        div.innerHTML = `<b>${d.user}:</b> ${d.text}${tool}`;
+        document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = 99999;
+    });
+
+    socket.on('admin_status', d => { if(d.is_admin) document.getElementById('admin-info').style.display = 'block'; });
+    socket.on('sys_msg', d => { alert(d.msg); });
+    socket.on('clear_screen', () => { document.getElementById('chat').innerHTML = "<div style='text-align:center; color:gray;'>--- ลบประวัติฝั่งคุณแล้ว ---</div>"; });
+
+    function setReply(sid) { document.getElementById('target_sid').value = sid; document.getElementById('m').focus(); }
+    function clearChat() { if(confirm("ลบประวัติเฉพาะฝั่งคุณ? (ข้อมูลฝั่งแอดมินยังอยู่เหมือนเดิม)")) socket.emit('clear_my_chat'); }
+
+    document.getElementById('m').addEventListener("keypress", (e) => { if (e.key === "Enter") sendMsg(); });
+ </script>
+</html>
