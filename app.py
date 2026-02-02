@@ -9,8 +9,8 @@ from flask_migrate import Migrate, upgrade
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 db_url = os.environ.get('DATABASE_URL')
-if os.environ.get('ENVIRONMENT') == 'production' and (not db_url or not db_url.startswith('postgresql')):
-    raise ValueError("DATABASE_URL must be set to a PostgreSQL URL in production")
+if db_url and not db_url.startswith('postgresql'):
+    raise ValueError("DATABASE_URL must be a PostgreSQL URL if set")
 else:
     if not db_url:
         default_db = os.path.join(os.getcwd(), 'instance', 'chat.db')

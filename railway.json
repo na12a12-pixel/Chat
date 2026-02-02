@@ -5,7 +5,6 @@
   "deploy": {
     "startCommand": "python app.py",
     "env": {
-      "ENVIRONMENT": "production",
       "SECRET_KEY": "__SET_IN_RAILWAY__",
       "ADMIN_PASS": "__SET_IN_RAILWAY__"
     }
